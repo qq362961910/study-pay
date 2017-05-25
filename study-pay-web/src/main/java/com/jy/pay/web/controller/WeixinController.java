@@ -3,18 +3,20 @@ package com.jy.pay.web.controller;
 
 import com.jy.pay.common.util.DigestUtil;
 import com.jy.pay.weixin.helper.WeixinHelper;
+import com.jy.pay.weixin.helper.config.WeixinPayConfigure;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.DatatypeConverter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.util.*;
 
 @RequestMapping("/weixin")
 @RestController
@@ -24,6 +26,8 @@ public class WeixinController extends BaseController{
 
     @Autowired
     private WeixinHelper weixinHelper;
+    @Autowired
+    private WeixinPayConfigure weixinPayConfigure;
 
     @RequestMapping("/token/verify")
     public Object tokenVerify(@RequestParam Map<String, String> params) {
@@ -35,7 +39,7 @@ public class WeixinController extends BaseController{
         params.remove("echostr");
         //前端网页指定的token
         String token = "123456";
-        List<String> elements = new ArrayList<String>();
+        List<String> elements = new ArrayList<>();
         elements.add(token);
         for (String value: params.values()) {
             elements.add(value);
@@ -52,4 +56,24 @@ public class WeixinController extends BaseController{
         }
         return fail();
     }
+
+    @RequestMapping(value = "/app/accessToken", method = RequestMethod.GET)
+    public Object getAppAccessToken() throws IOException, IllegalAccessException {
+        Map<String, Object> result = weixinHelper.requestAppAccessToken();
+        return success(result);
+    }
+
+    @RequestMapping("/redirect/code")
+    public void redirectForCode(@RequestParam Map<String, String> params, HttpServletResponse response) throws IOException {
+        String callback = "http://study-pay.nat123.net/weixin/callback/code";
+        String callbackToUse = URLEncoder.encode(callback, "UTF-8");
+        String redirectUrl = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=" + weixinPayConfigure.getAppID() + "&redirect_uri=" + callbackToUse + "&response_type=code&scope=snsapi_base&state=STATE#wechat_redirect";
+        response.sendRedirect(redirectUrl);
+    }
+
+    @RequestMapping("/callback/code")
+    public void callbackCode(@RequestParam Map<String, String> params) {
+        logger.info(params);
+    }
+
 }

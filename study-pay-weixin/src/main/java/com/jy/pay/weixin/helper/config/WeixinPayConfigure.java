@@ -39,6 +39,9 @@ public class WeixinPayConfigure {
     public  String accessTokenUrl = "https://api.weixin.qq.com/sns/oauth2/access_token";
     //(9) auth call back url
     public  String callBackHost = "99pay.51play.com";
+    //(10) app access token
+    public String appAccessTokenUrl = "https://api.weixin.qq.com/cgi-bin/token";
+
 
     public String getKey() {
         return key;
@@ -200,5 +203,13 @@ public class WeixinPayConfigure {
     public WeixinPayConfigure setCallBackHost(String callBackHost) {
         this.callBackHost = callBackHost;
         return this;
+    }
+
+    public String getAppAccessTokenUrl() {
+        return appAccessTokenUrl;
+    }
+
+    public void setAppAccessTokenUrl(String appAccessTokenUrl) {
+        this.appAccessTokenUrl = appAccessTokenUrl;
     }
 }

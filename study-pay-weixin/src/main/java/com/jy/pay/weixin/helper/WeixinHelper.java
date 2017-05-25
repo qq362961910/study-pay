@@ -7,6 +7,7 @@ import com.jy.pay.common.anno.XmlRootElement;
 import com.jy.pay.common.util.DigestUtil;
 import com.jy.pay.weixin.helper.config.WeixinPayConfigure;
 import com.jy.pay.weixin.helper.request.entity.AccessTokenRequestConfigure;
+import com.jy.pay.weixin.helper.request.entity.AppAccessTokenRequestConfigure;
 import com.jy.pay.weixin.helper.request.entity.UnionPayRequestConfigure;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -58,6 +59,18 @@ public class WeixinHelper {
             }
         }
         return null;
+    }
+
+    public Map<String, Object> requestAppAccessToken() throws IllegalAccessException, IOException {
+        AppAccessTokenRequestConfigure configure = AppAccessTokenRequestConfigure.defaultConfig(weixinPayConfigure.getAppID(), weixinPayConfigure.getSecret());
+        String queryUrl = weixinPayConfigure.getAppAccessTokenUrl() + buildUrlSearch(configure);
+        HttpGet get = new HttpGet(queryUrl);
+        HttpClient client = HttpClients.createDefault();
+        HttpResponse response = client.execute(get);
+        HttpEntity entity = response.getEntity();
+        String result = EntityUtils.toString(entity, "UTF-8");
+        Map<String, Object> tokenMap = objectMapper.readValue(result, HashMap.class);
+        return tokenMap;
     }
 
 
@@ -235,6 +248,26 @@ public class WeixinHelper {
             accessTokenRequestConfigureClassMap.put(f, urlParamName);
         }
         CONFIGURE_FIELD_URLPARAM_MAPPING.put(accessTokenRequestConfigureClass, accessTokenRequestConfigureClassMap);
+
+        Map<Field, String> appTokenRequestConfigureClassMap = new HashMap<>();
+        Class<AppAccessTokenRequestConfigure> appTokenRequestConfigureClass =  AppAccessTokenRequestConfigure.class;
+        Field[] appTokenRequestConfigureClassFields = appTokenRequestConfigureClass.getDeclaredFields();
+        for (Field f: appTokenRequestConfigureClassFields) {
+            String urlParamName;
+            UrlParam urlParam = f.getAnnotation(UrlParam.class);
+            if (urlParam != null) {
+                urlParamName = urlParam.value();
+                if (urlParamName == null || urlParamName.trim().length() == 0) {
+                    urlParamName = f.getName();
+                }
+            }
+            else {
+                urlParamName = f.getName();
+            }
+            appTokenRequestConfigureClassMap.put(f, urlParamName);
+        }
+        CONFIGURE_FIELD_URLPARAM_MAPPING.put(appTokenRequestConfigureClass, appTokenRequestConfigureClassMap);
+
     }
     //load xml config class
     static {
