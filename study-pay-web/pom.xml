@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>study-pay</artifactId>
+        <groupId>study</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>study-pay-web</artifactId>
+    <packaging>war</packaging>
+    <properties>
+        <build.final.name>Pay</build.final.name>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>study</groupId>
+            <artifactId>study-pay-service</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-orm</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>5.2.3.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.8.4</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.5</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.10</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-fileupload</groupId>
+            <artifactId>commons-fileupload</artifactId>
+            <version>1.3.2</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>2.8.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.8.2</version>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>6.0.4</version>
+        </dependency>
+        <dependency>
+            <groupId>c3p0</groupId>
+            <artifactId>c3p0</artifactId>
+            <version>0.9.1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>3.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>jstl</artifactId>
+            <version>1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.qiniu</groupId>
+            <artifactId>qiniu-java-sdk</artifactId>
+            <version>[7.0.0, 7.1.99]</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources/</directory>
+                <includes>
+                    <include>**/*.properties</include>
+                    <include>**/*.xml</include>
+                    <include>**/*.yml</include>
+                </includes>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>2.6</version>
+                <configuration>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                    <warName>${build.final.name}</warName>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <!-- dev -->
+        <profile>
+            <id>dev</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <!-- jdbc -->
+                <db.driver.class>com.mysql.cj.jdbc.Driver</db.driver.class>
+                <db.url>jdbc:mysql://192.168.14.227:3306/blog?useSSL=false&amp;characterEncoding=UTF-8&amp;createDatabaseIfNotExist=true&amp;useUnicode=true&amp;useJDBCCompliantTimezoneShift=true&amp;useLegacyDatetimeCode=false&amp;serverTimezone=UTC</db.url>
+                <db.username>blog</db.username>
+                <db.password>blog</db.password>
+                <db.initialPoolSize>5</db.initialPoolSize>
+                <db.minPoolSize>10</db.minPoolSize>
+                <db.maxPoolSize>30</db.maxPoolSize>
+                <db.maxIdleTime>180</db.maxIdleTime>
+                <db.maxConnectionAge>10</db.maxConnectionAge>
+                <db.idleConnectionTestPeriod>60</db.idleConnectionTestPeriod>
+                <!-- hibernate -->
+                <hibernate.dialect>org.hibernate.dialect.MySQLDialect</hibernate.dialect>
+                <hibernate.show_sql>true</hibernate.show_sql>
+                <hibernate.format_sql>true</hibernate.format_sql>
+                <hibernate.hbm2ddl.auto>update</hibernate.hbm2ddl.auto>
+                <!-- QiNiu -->
+                <qiniu.access.key>kaPB57L8LyggX6ozLRE5jIwm3RZnjc7biQxHvkhT</qiniu.access.key>
+                <qiniu.secret.key>bea4oP_zw6MDv9Bn8y1uT7nwQZOL0ZFxRwV4ck7N</qiniu.secret.key>
+                <qiniu.public.img.bucket>public-image</qiniu.public.img.bucket>
+                <qiniu.img.404>http://ogoysg5ko.bkt.clouddn.com/404.jpg</qiniu.img.404>
+                <qiniu.article.coverImg>http://ogoysg5ko.bkt.clouddn.com/404.jpg</qiniu.article.coverImg>
+                <qiniu.base.url>http://ogoysg5ko.bkt.clouddn.com/</qiniu.base.url>
+                <!-- logging -->
+                <logging.level>INFO</logging.level>
+            </properties>
+        </profile>
+
+        <!-- test -->
+        <profile>
+            <id>test</id>
+            <properties>
+                <!-- jdbc -->
+                <db.driver.class>com.mysql.cj.jdbc.Driver</db.driver.class>
+                <db.url>jdbc:mysql://localhost:3306/blog?useSSL=false&amp;characterEncoding=UTF-8&amp;createDatabaseIfNotExist=true&amp;useUnicode=true&amp;useJDBCCompliantTimezoneShift=true&amp;useLegacyDatetimeCode=false&amp;serverTimezone=UTC</db.url>
+                <db.username>vr</db.username>
+                <db.password>123456</db.password>
+                <db.initialPoolSize>5</db.initialPoolSize>
+                <db.minPoolSize>10</db.minPoolSize>
+                <db.maxPoolSize>30</db.maxPoolSize>
+                <db.maxIdleTime>180</db.maxIdleTime>
+                <db.maxConnectionAge>10</db.maxConnectionAge>
+                <db.idleConnectionTestPeriod>60</db.idleConnectionTestPeriod>
+                <!-- hibernate -->
+                <hibernate.dialect>org.hibernate.dialect.MySQLDialect</hibernate.dialect>
+                <hibernate.show_sql>false</hibernate.show_sql>
+                <hibernate.format_sql>false</hibernate.format_sql>
+                <hibernate.hbm2ddl.auto>update</hibernate.hbm2ddl.auto>
+                <!-- QiNiu -->
+                <qiniu.access.key>kaPB57L8LyggX6ozLRE5jIwm3RZnjc7biQxHvkhT</qiniu.access.key>
+                <qiniu.secret.key>bea4oP_zw6MDv9Bn8y1uT7nwQZOL0ZFxRwV4ck7N</qiniu.secret.key>
+                <qiniu.public.img.bucket>public-image</qiniu.public.img.bucket>
+                <qiniu.img.404>http://ogoysg5ko.bkt.clouddn.com/404.jpg</qiniu.img.404>
+                <qiniu.base.url>http://ogoysg5ko.bkt.clouddn.com/</qiniu.base.url>
+                <!-- logging -->
+                <logging.level>ERROR</logging.level>
+            </properties>
+        </profile>
+
+        <!-- prod -->
+        <profile>
+            <id>prod</id>
+            <properties>
+                <!-- jdbc -->
+                <db.driver.class>com.mysql.cj.jdbc.Driver</db.driver.class>
+                <db.url>jdbc:mysql://localhost:3306/blog?useSSL=false&amp;characterEncoding=UTF-8&amp;createDatabaseIfNotExist=true&amp;useUnicode=true&amp;useJDBCCompliantTimezoneShift=true&amp;useLegacyDatetimeCode=false&amp;serverTimezone=UTC</db.url>
+                <db.username>vr</db.username>
+                <db.password>123456</db.password>
+                <db.initialPoolSize>5</db.initialPoolSize>
+                <db.minPoolSize>10</db.minPoolSize>
+                <db.maxPoolSize>30</db.maxPoolSize>
+                <db.maxIdleTime>180</db.maxIdleTime>
+                <db.maxConnectionAge>10</db.maxConnectionAge>
+                <db.idleConnectionTestPeriod>60</db.idleConnectionTestPeriod>
+                <!-- hibernate -->
+                <hibernate.dialect>org.hibernate.dialect.MySQLDialect</hibernate.dialect>
+                <hibernate.show_sql>false</hibernate.show_sql>
+                <hibernate.format_sql>false</hibernate.format_sql>
+                <hibernate.hbm2ddl.auto>update</hibernate.hbm2ddl.auto>
+                <!-- QiNiu -->
+                <qiniu.access.key>kaPB57L8LyggX6ozLRE5jIwm3RZnjc7biQxHvkhT</qiniu.access.key>
+                <qiniu.secret.key>bea4oP_zw6MDv9Bn8y1uT7nwQZOL0ZFxRwV4ck7N</qiniu.secret.key>
+                <qiniu.public.img.bucket>public-image</qiniu.public.img.bucket>
+                <qiniu.img.404>http://ogoysg5ko.bkt.clouddn.com/404.jpg</qiniu.img.404>
+                <qiniu.base.url>http://ogoysg5ko.bkt.clouddn.com/</qiniu.base.url>
+                <!-- logging -->
+                <logging.level>ERROR</logging.level>
+            </properties>
+        </profile>
+    </profiles>
+
+</project>

@@ -9,18 +9,17 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>study-pay-entity</artifactId>
+    <artifactId>study-pay-service</artifactId>
     <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
             <groupId>study</groupId>
-            <artifactId>study-pay-common</artifactId>
+            <artifactId>study-pay-ali</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-core</artifactId>
+            <groupId>study</groupId>
+            <artifactId>study-pay-weixin</artifactId>
         </dependency>
     </dependencies>
-
 </project>
