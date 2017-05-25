@@ -57,20 +57,29 @@ public class WeixinController extends BaseController{
         return fail();
     }
 
+    /**
+     * 获取App AccessToken
+     * */
     @RequestMapping(value = "/app/accessToken", method = RequestMethod.GET)
     public Object getAppAccessToken() throws IOException, IllegalAccessException {
         Map<String, Object> result = weixinHelper.requestAppAccessToken();
         return success(result);
     }
 
+    /**
+     * 用户重定向获取Code
+     * */
     @RequestMapping("/redirect/code")
     public void redirectForCode(@RequestParam Map<String, String> params, HttpServletResponse response) throws IOException {
         String callback = "http://study-pay.nat123.net/weixin/callback/code";
         String callbackToUse = URLEncoder.encode(callback, "UTF-8");
-        String redirectUrl = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=" + weixinPayConfigure.getAppID() + "&redirect_uri=" + callbackToUse + "&response_type=code&scope=snsapi_base&state=STATE#wechat_redirect";
+        String redirectUrl = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=" + weixinPayConfigure.getAppID() + "&redirect_uri=" + callbackToUse + "&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect";
         response.sendRedirect(redirectUrl);
     }
 
+    /**
+     * 用户重定向获取Code回调
+     * */
     @RequestMapping("/callback/code")
     public void callbackCode(@RequestParam Map<String, String> params) {
         logger.info(params);
