@@ -15,6 +15,7 @@
         <module>study-pay-ali</module>
         <module>study-pay-web</module>
         <module>study-pay-service</module>
+        <module>study-pay-dao</module>
     </modules>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -51,6 +52,11 @@
             <dependency>
                 <groupId>study</groupId>
                 <artifactId>study-pay-entity</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>study</groupId>
+                <artifactId>study-pay-dao</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>

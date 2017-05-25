@@ -10,7 +10,7 @@ import org.apache.logging.log4j.LogManager;
 @RestController
 public class TestController {
 
-    private final Logger logger = LogManager.getLogger(TestController.class.getName());
+    private final Logger logger = LogManager.getLogger(TestController.class);
     @RequestMapping("/json")
     public Object testJson() {
 

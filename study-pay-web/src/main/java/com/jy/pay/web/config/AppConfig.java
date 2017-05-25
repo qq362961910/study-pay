@@ -1,6 +1,8 @@
 package com.jy.pay.web.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jy.pay.web.helper.QiNiuHelper;
+import com.jy.pay.weixin.helper.config.WeixinPayConfigure;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,11 +30,12 @@ import java.util.Properties;
 @EnableWebMvc
 @EnableTransactionManagement
 @ComponentScan(
-        basePackages = "com.jy"
+        basePackages = "com.jy.pay"
 )
 @PropertySource({"classpath:props/db.properties",
         "classpath:props/hibernate.properties",
-        "classpath:props/qiniu.properties"})
+        "classpath:props/qiniu.properties",
+        "classpath:props/weixin.properties"})
 public class AppConfig extends WebMvcConfigurerAdapter {
 
     @Autowired
@@ -139,6 +142,35 @@ public class AppConfig extends WebMvcConfigurerAdapter {
         qiNiuHelper.setPublicImgBucket(environment.getProperty("qiniu.public.img.bucket"));
         qiNiuHelper.init();
         return qiNiuHelper;
+    }
+
+    @Bean
+    public WeixinPayConfigure weixinPayConfigure() {
+        WeixinPayConfigure weixinPayConfigure = new WeixinPayConfigure();
+        weixinPayConfigure.setKey(environment.getProperty("key"));
+        weixinPayConfigure.setAppID(environment.getProperty("appID"));
+        weixinPayConfigure.setSecret(environment.getProperty("secret"));
+        weixinPayConfigure.setMchID(environment.getProperty("mchID"));
+        weixinPayConfigure.setSubMchID(environment.getProperty("subMchID"));
+        weixinPayConfigure.setCertLocalPath(environment.getProperty("certLocalPath"));
+        weixinPayConfigure.setCertPassword(environment.getProperty("certPassword"));
+        weixinPayConfigure.setUseThreadToDoReport(Boolean.parseBoolean(environment.getProperty("useThreadToDoReport")));
+        weixinPayConfigure.setIp(environment.getProperty("ip"));
+        weixinPayConfigure.setPayApi(environment.getProperty("payApi"));
+        weixinPayConfigure.setPayQueryApi(environment.getProperty("payQueryApi"));
+        weixinPayConfigure.setRefundApi(environment.getProperty("refundApi"));
+        weixinPayConfigure.setRefundQueryApi(environment.getProperty("refundQueryApi"));
+        weixinPayConfigure.setReverseApi(environment.getProperty("reverseApi"));
+        weixinPayConfigure.setDownloadBillApi(environment.getProperty("downloadBillApi"));
+        weixinPayConfigure.setReportApi(environment.getProperty("reportApi"));
+        weixinPayConfigure.setAccessTokenUrl(environment.getProperty("accessTokenUrl"));
+        weixinPayConfigure.setCallBackHost(environment.getProperty("callBackHost"));
+        return weixinPayConfigure;
+    }
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
     }
 
 }

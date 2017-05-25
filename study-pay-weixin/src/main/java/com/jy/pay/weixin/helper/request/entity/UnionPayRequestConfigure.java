@@ -3,7 +3,6 @@ package com.jy.pay.weixin.helper.request.entity;
 
 import com.jy.pay.common.anno.XmlElement;
 import com.jy.pay.common.anno.XmlRootElement;
-import com.jy.pay.weixin.helper.config.Configure;
 
 @XmlRootElement("xml")
 public class UnionPayRequestConfigure {
@@ -37,10 +36,10 @@ public class UnionPayRequestConfigure {
     @XmlElement("sign")
     private String sign;
 
-    public static UnionPayRequestConfigure defaultUnionPayRequestConfigure() {
+    public static UnionPayRequestConfigure defaultUnionPayRequestConfigure(String appid, String mchId) {
         UnionPayRequestConfigure unionPayRequestConfigure = new UnionPayRequestConfigure();
-        unionPayRequestConfigure.appid = Configure.getAppid();
-        unionPayRequestConfigure.mchId = Configure.getMchid();
+        unionPayRequestConfigure.appid = appid;
+        unionPayRequestConfigure.mchId = mchId;
         return unionPayRequestConfigure;
     }
 
