@@ -2,6 +2,8 @@ package com.jy.pay.web.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jy.pay.web.helper.QiNiuHelper;
+import com.jy.pay.weixin.aes.AesException;
+import com.jy.pay.weixin.aes.WXBizMsgCrypt;
 import com.jy.pay.weixin.helper.config.WeixinPayConfigure;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import org.hibernate.SessionFactory;
@@ -168,6 +170,12 @@ public class AppConfig extends WebMvcConfigurerAdapter {
         weixinPayConfigure.setToken(environment.getProperty("token"));
         weixinPayConfigure.setAesKey(environment.getProperty("aesKey"));
         return weixinPayConfigure;
+    }
+
+    @Autowired
+    @Bean
+    public WXBizMsgCrypt wxBizMsgCrypt(WeixinPayConfigure weixinPayConfigure) throws AesException {
+        return new WXBizMsgCrypt(weixinPayConfigure.getToken(), weixinPayConfigure.getAesKey(), weixinPayConfigure.getAppID());
     }
 
     @Bean

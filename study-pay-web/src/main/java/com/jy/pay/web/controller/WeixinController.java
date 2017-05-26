@@ -2,8 +2,10 @@ package com.jy.pay.web.controller;
 
 
 import com.jy.pay.common.util.DigestUtil;
+import com.jy.pay.entity.weixin.TextMessage;
 import com.jy.pay.weixin.aes.AesException;
 import com.jy.pay.weixin.aes.WXBizMsgCrypt;
+import com.jy.pay.weixin.handler.TextMessageHandler;
 import com.jy.pay.weixin.helper.WeixinHelper;
 import com.jy.pay.weixin.helper.config.WeixinPayConfigure;
 import org.apache.logging.log4j.LogManager;
@@ -42,9 +44,11 @@ public class WeixinController extends BaseController{
     private WeixinHelper weixinHelper;
     @Autowired
     private WeixinPayConfigure weixinPayConfigure;
+    @Autowired
+    private TextMessageHandler textMessageHandler;
 
     @RequestMapping
-    public Object getCallback(@RequestParam Map<String, String> params, HttpServletRequest request) throws IOException, JDOMException, AesException {
+    public Object getCallback(@RequestParam Map<String, String> params, HttpServletRequest request) throws Exception {
         logger.info("receive param: " + params);
         Object signature = params.get("signature");
         String echostr = params.get("echostr");
@@ -107,32 +111,14 @@ public class WeixinController extends BaseController{
             logger.info("content: " + content);
             logger.info("msgId: " + msgId);
 
-
             //echo handler
-            Element responseXml = new Element("xml");
-            Document responseDoc = new Document(responseXml);
-
-            Element toUserNameE = new Element("ToUserName");
-            toUserNameE.addContent(new CDATA(fromUserName));
-            responseXml.addContent(toUserNameE);
-
-            Element fromUserNameE = new Element("FromUserName");
-            toUserNameE.addContent(new CDATA(toUserName));
-            responseXml.addContent(fromUserNameE);
-
-            Element createTimeE = new Element("CreateTime");
-            createTimeE.addContent("12345678");
-            responseXml.addContent(createTimeE);
-
-            Element messageTypeE = new Element("MsgType");
-            messageTypeE.addContent(messageType);
-            responseXml.addContent(messageTypeE);
-
-            Element contentE = new Element("Content");
-            contentE.addContent(new CDATA(content));
-            responseXml.addContent(contentE);
-
-            return crypter.encryptMsg(outputter.outputString(responseDoc), timestamp, nonce);
+            TextMessage textMessage = new TextMessage();
+            textMessage.setFromUserName(fromUserName);
+            textMessage.setToUserName(toUserName);
+            textMessage.setCrateTime(createTime);
+            textMessage.setMessageId(msgId);
+            textMessage.setContent(content);
+            return textMessageHandler.handle(textMessage);
 
         }
         if (signature.equals(sign)) {
