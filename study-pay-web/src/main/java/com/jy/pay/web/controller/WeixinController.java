@@ -8,7 +8,7 @@ import com.jy.pay.weixin.helper.WeixinHelper;
 import com.jy.pay.weixin.helper.config.WeixinPayConfigure;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.hibernate.annotations.SourceType;
+import org.jdom2.CDATA;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
@@ -23,7 +23,9 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.DatatypeConverter;
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,14 +44,13 @@ public class WeixinController extends BaseController{
     private WeixinPayConfigure weixinPayConfigure;
 
     @RequestMapping
-    public Object callback(@RequestParam Map<String, String> params, HttpServletRequest request) throws IOException, JDOMException, AesException {
+    public Object getCallback(@RequestParam Map<String, String> params, HttpServletRequest request) throws IOException, JDOMException, AesException {
         logger.info("receive param: " + params);
         Object signature = params.get("signature");
         String echostr = params.get("echostr");
         String timestamp = params.get("timestamp");
         String nonce = params.get("nonce");
         String openid = params.get("openid");
-        String token = "123456";
 
         String encryptType = params.get("encrypt_type");
         String messageSignature = params.get("msg_signature");
@@ -57,7 +58,7 @@ public class WeixinController extends BaseController{
         List<String> elements = new ArrayList<>();
         elements.add(timestamp);
         elements.add(nonce);
-        elements.add(token);
+        elements.add(weixinPayConfigure.getToken());
         Collections.sort(elements);
         StringBuilder sb = new StringBuilder();
         for (String str: elements) {
@@ -66,6 +67,8 @@ public class WeixinController extends BaseController{
         byte[] digestBytes = DigestUtil.getSha1().digest(sb.toString().getBytes());
         String sign = DatatypeConverter.printHexBinary(digestBytes).toLowerCase();
         InputStream is = request.getInputStream();
+
+        //接受xml消息，并解密消息
         if (is != null) {
             sb.setLength(0);
             byte[] buf = new byte[1024];
@@ -76,19 +79,20 @@ public class WeixinController extends BaseController{
                 }
                 sb.append(new String(buf, 0, len));
             }
-            SAXBuilder saxBuilder = new SAXBuilder();
-            Document doc = saxBuilder.build(new StringReader(sb.toString()));
+
+            String originalRequestBody = sb.toString();
+            logger.debug("original request body: \r" + originalRequestBody);
+
+
+            WXBizMsgCrypt crypter = new WXBizMsgCrypt(weixinPayConfigure.getToken(), weixinPayConfigure.getAesKey(), weixinPayConfigure.getAppID());
+            String requestMessage = crypter.decryptMsg(messageSignature, timestamp, nonce, originalRequestBody);
+            logger.info("message: \r" + requestMessage);
+
             XMLOutputter outputter = new XMLOutputter();
-            String requestBody = outputter.outputString(doc);
-            logger.debug("content: \r" + requestBody);
-
-            WXBizMsgCrypt crypt = new WXBizMsgCrypt(weixinPayConfigure.getToken(), weixinPayConfigure.getAesKey(), weixinPayConfigure.getAppID());
-            String message = crypt.decryptMsg(messageSignature, timestamp, nonce, requestBody);
-            logger.debug("message: \r" + message);
-
-            Document messageXml = saxBuilder.build(new StringReader(message));
-
-            Element root = messageXml.getRootElement();
+            SAXBuilder saxBuilder = new SAXBuilder();
+            Document requestMessageXml = saxBuilder.build(new StringReader(requestMessage));
+            Element root = requestMessageXml.getRootElement();
+            String toUserName = root.getChild("ToUserName").getText();
             String fromUserName = root.getChild("FromUserName").getText();
             String createTime = root.getChild("CreateTime").getText();
             String messageType = root.getChild("MsgType").getText();
@@ -96,12 +100,40 @@ public class WeixinController extends BaseController{
             String msgId = root.getChild("MsgId").getText();
 
             logger.info("message body: \r");
+            logger.info("toUserName: " + toUserName);
             logger.info("fromUserName: " + fromUserName);
             logger.info("createTime: " + createTime);
             logger.info("messageType: " + messageType);
             logger.info("content: " + content);
             logger.info("msgId: " + msgId);
-            logger.info("openid: " + openid);
+
+
+            //echo handler
+            Element responseXml = new Element("xml");
+            Document responseDoc = new Document(responseXml);
+
+            Element toUserNameE = new Element("ToUserName");
+            toUserNameE.addContent(new CDATA(fromUserName));
+            responseXml.addContent(toUserNameE);
+
+            Element fromUserNameE = new Element("FromUserName");
+            toUserNameE.addContent(new CDATA(toUserName));
+            responseXml.addContent(fromUserNameE);
+
+            Element createTimeE = new Element("CreateTime");
+            createTimeE.addContent("12345678");
+            responseXml.addContent(createTimeE);
+
+            Element messageTypeE = new Element("MsgType");
+            messageTypeE.addContent(messageType);
+            responseXml.addContent(messageTypeE);
+
+            Element contentE = new Element("Content");
+            contentE.addContent(new CDATA(content));
+            responseXml.addContent(contentE);
+
+            return crypter.encryptMsg(outputter.outputString(responseDoc), timestamp, nonce);
+
         }
         if (signature.equals(sign)) {
             logger.info("verify signature success");
@@ -110,6 +142,7 @@ public class WeixinController extends BaseController{
         logger.error("verify signature fail");
         return fail();
     }
+
 
     /**
      * 获取App AccessToken
