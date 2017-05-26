@@ -7,8 +7,6 @@ import com.jy.pay.entity.weixin.enums.MessageType;
  */
 public class BaseWeixinMessage {
 
-    private String messageId;
-
     private String toUserName;
 
     private String fromUserName;
@@ -16,14 +14,6 @@ public class BaseWeixinMessage {
     private String crateTime;
 
     private MessageType messageType;
-
-    public String getMessageId() {
-        return messageId;
-    }
-
-    public void setMessageId(String messageId) {
-        this.messageId = messageId;
-    }
 
     public String getToUserName() {
         return toUserName;

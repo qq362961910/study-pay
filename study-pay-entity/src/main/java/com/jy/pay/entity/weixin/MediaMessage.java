@@ -3,7 +3,7 @@ package com.jy.pay.entity.weixin;
 /**
  * 媒体消息
  */
-public class MediaMessage extends BaseWeixinMessage{
+public class MediaMessage extends UserMessage {
 
     private String mediaId;
 

@@ -5,7 +5,7 @@ import com.jy.pay.entity.weixin.enums.MessageType;
 /**
  * 文本消息
  */
-public class TextMessage extends BaseWeixinMessage {
+public class TextMessage extends UserMessage {
 
     /**
      * 消息内容

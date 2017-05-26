@@ -2,20 +2,20 @@ package com.jy.pay.web.controller;
 
 
 import com.jy.pay.common.util.DigestUtil;
-import com.jy.pay.entity.weixin.TextMessage;
-import com.jy.pay.weixin.aes.AesException;
+import com.jy.pay.entity.weixin.BaseWeixinMessage;
+import com.jy.pay.entity.weixin.enums.MessageType;
 import com.jy.pay.weixin.aes.WXBizMsgCrypt;
-import com.jy.pay.weixin.handler.TextMessageHandler;
+import com.jy.pay.weixin.handler.MessageHandler;
+import com.jy.pay.weixin.handler.MessageHandlerManager;
 import com.jy.pay.weixin.helper.WeixinHelper;
 import com.jy.pay.weixin.helper.config.WeixinPayConfigure;
+import com.jy.pay.weixin.producer.MessageProducer;
+import com.jy.pay.weixin.producer.MessageProducerManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jdom2.CDATA;
 import org.jdom2.Document;
 import org.jdom2.Element;
-import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
-import org.jdom2.output.XMLOutputter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -45,7 +45,9 @@ public class WeixinController extends BaseController{
     @Autowired
     private WeixinPayConfigure weixinPayConfigure;
     @Autowired
-    private TextMessageHandler textMessageHandler;
+    private MessageHandlerManager messageHandlerManager;
+    @Autowired
+    private MessageProducerManager messageProducerManager;
 
     @RequestMapping
     public Object getCallback(@RequestParam Map<String, String> params, HttpServletRequest request) throws Exception {
@@ -87,12 +89,10 @@ public class WeixinController extends BaseController{
             String originalRequestBody = sb.toString();
             logger.debug("original request body: \r" + originalRequestBody);
 
-
             WXBizMsgCrypt crypter = new WXBizMsgCrypt(weixinPayConfigure.getToken(), weixinPayConfigure.getAesKey(), weixinPayConfigure.getAppID());
             String requestMessage = crypter.decryptMsg(messageSignature, timestamp, nonce, originalRequestBody);
             logger.info("message: \r" + requestMessage);
 
-            XMLOutputter outputter = new XMLOutputter();
             SAXBuilder saxBuilder = new SAXBuilder();
             Document requestMessageXml = saxBuilder.build(new StringReader(requestMessage));
             Element root = requestMessageXml.getRootElement();
@@ -100,26 +100,34 @@ public class WeixinController extends BaseController{
             String fromUserName = root.getChild("FromUserName").getText();
             String createTime = root.getChild("CreateTime").getText();
             String messageType = root.getChild("MsgType").getText();
-            String content = root.getChild("Content").getText();
-            String msgId = root.getChild("MsgId").getText();
 
             logger.info("message body: \r");
             logger.info("toUserName: " + toUserName);
             logger.info("fromUserName: " + fromUserName);
             logger.info("createTime: " + createTime);
             logger.info("messageType: " + messageType);
-            logger.info("content: " + content);
-            logger.info("msgId: " + msgId);
 
-            //echo handler
-            TextMessage textMessage = new TextMessage();
-            textMessage.setFromUserName(fromUserName);
-            textMessage.setToUserName(toUserName);
-            textMessage.setCrateTime(createTime);
-            textMessage.setMessageId(msgId);
-            textMessage.setContent(content);
-            return textMessageHandler.handle(textMessage);
-
+            MessageType type = MessageType.getMessageType(messageType);
+            logger.info("receive a message: " + type);
+            MessageHandler messageHandler = messageHandlerManager.getMessageHandler(type);
+            if (messageHandler != null) {
+                MessageProducer producer = messageProducerManager.getMessageProducer(type);
+                if (producer != null) {
+                    BaseWeixinMessage message = producer.produce(root);
+                    if (message != null) {
+                        Object result = messageHandler.handle(message);
+                        if (request != null) {
+                            return result;
+                        }
+                    }
+                }
+                else {
+                    logger.warn("no message producer found for message type: " + messageType);
+                }
+            }
+            else {
+                logger.warn("no message handler found for message type: " + messageType);
+            }
         }
         if (signature.equals(sign)) {
             logger.info("verify signature success");
