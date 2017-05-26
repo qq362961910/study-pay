@@ -165,6 +165,8 @@ public class AppConfig extends WebMvcConfigurerAdapter {
         weixinPayConfigure.setReportApi(environment.getProperty("reportApi"));
         weixinPayConfigure.setAccessTokenUrl(environment.getProperty("accessTokenUrl"));
         weixinPayConfigure.setCallBackHost(environment.getProperty("callBackHost"));
+        weixinPayConfigure.setToken(environment.getProperty("token"));
+        weixinPayConfigure.setAesKey(environment.getProperty("aesKey"));
         return weixinPayConfigure;
     }
 

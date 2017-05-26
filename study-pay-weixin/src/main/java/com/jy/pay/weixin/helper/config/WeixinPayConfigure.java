@@ -8,6 +8,10 @@ public class WeixinPayConfigure {
     private  String appID = "wx22972e1527274740";
     //secret
     private  String secret = "2ee86ef088543b194c77be06de761566";
+    //token
+    private String token;
+    //aes key
+    private String aesKey;
     //微信支付分配的商户号ID（开通公众号的微信支付功能之后可以获取到）
     private  String mchID = "1451278902";
     //受理模式下给子商户分配的子商户号
@@ -211,5 +215,21 @@ public class WeixinPayConfigure {
 
     public void setAppAccessTokenUrl(String appAccessTokenUrl) {
         this.appAccessTokenUrl = appAccessTokenUrl;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public String getAesKey() {
+        return aesKey;
+    }
+
+    public void setAesKey(String aesKey) {
+        this.aesKey = aesKey;
     }
 }
