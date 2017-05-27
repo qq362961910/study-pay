@@ -1,16 +1,11 @@
 package com.jy.pay.weixin.handler;
 
-import com.jy.pay.common.util.RandomUtil;
 import com.jy.pay.entity.weixin.BaseWeixinMessage;
 import com.jy.pay.entity.weixin.TextMessage;
 import com.jy.pay.entity.weixin.enums.MessageType;
-import com.jy.pay.weixin.aes.AesException;
-import com.jy.pay.weixin.aes.WXBizMsgCrypt;
 import org.jdom2.CDATA;
 import org.jdom2.Document;
 import org.jdom2.Element;
-import org.jdom2.output.XMLOutputter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -18,10 +13,6 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class TextMessageHandler implements MessageHandler {
-
-    @Autowired
-    private WXBizMsgCrypt crypter;
-    private XMLOutputter outputter = new XMLOutputter();
 
     @Override
     public boolean support(MessageType messageType) {
@@ -56,6 +47,6 @@ public class TextMessageHandler implements MessageHandler {
         contentE.setContent(new CDATA(((TextMessage)weixinMessage).getContent()));
         responseXml.addContent(contentE);
 
-        return crypter.encryptMsg(outputter.outputString(responseDoc), timestamp, RandomUtil.getRandomStr());
+        return responseDoc;
     }
 }

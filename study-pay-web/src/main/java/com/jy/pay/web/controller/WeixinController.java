@@ -2,6 +2,7 @@ package com.jy.pay.web.controller;
 
 
 import com.jy.pay.common.util.DigestUtil;
+import com.jy.pay.common.util.RandomUtil;
 import com.jy.pay.entity.weixin.BaseWeixinMessage;
 import com.jy.pay.entity.weixin.enums.MessageType;
 import com.jy.pay.weixin.aes.WXBizMsgCrypt;
@@ -16,6 +17,7 @@ import org.apache.logging.log4j.Logger;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.input.SAXBuilder;
+import org.jdom2.output.XMLOutputter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -39,6 +41,7 @@ import java.util.Map;
 public class WeixinController extends BaseController{
 
     private final Logger logger = LogManager.getLogger(WeixinController.class);
+    private static final XMLOutputter outputter = new XMLOutputter();
 
     @Autowired
     private WeixinHelper weixinHelper;
@@ -48,6 +51,8 @@ public class WeixinController extends BaseController{
     private MessageHandlerManager messageHandlerManager;
     @Autowired
     private MessageProducerManager messageProducerManager;
+    @Autowired
+    private WXBizMsgCrypt crypter;
 
     @RequestMapping
     public Object getCallback(@RequestParam Map<String, String> params, HttpServletRequest request) throws Exception {
@@ -87,11 +92,17 @@ public class WeixinController extends BaseController{
             }
             if (sb.length() > 0) {
                 String originalRequestBody = sb.toString();
-                logger.debug("original request body: \r" + originalRequestBody);
+                logger.debug("original request body: \r\n" + originalRequestBody);
 
-                WXBizMsgCrypt crypter = new WXBizMsgCrypt(weixinPayConfigure.getToken(), weixinPayConfigure.getAesKey(), weixinPayConfigure.getAppID());
-                String requestMessage = crypter.decryptMsg(messageSignature, timestamp, nonce, originalRequestBody);
-                logger.info("message: \r" + requestMessage);
+                String requestMessage;
+                if (encryptType!= null) {
+                    WXBizMsgCrypt crypter = new WXBizMsgCrypt(weixinPayConfigure.getToken(), weixinPayConfigure.getAesKey(), weixinPayConfigure.getAppID());
+                    requestMessage = crypter.decryptMsg(messageSignature, timestamp, nonce, originalRequestBody);
+                    logger.info("message: \r\n" + requestMessage);
+                }
+                else {
+                    requestMessage = originalRequestBody;
+                }
 
                 SAXBuilder saxBuilder = new SAXBuilder();
                 Document requestMessageXml = saxBuilder.build(new StringReader(requestMessage));
@@ -101,7 +112,7 @@ public class WeixinController extends BaseController{
                 String createTime = root.getChild("CreateTime").getText();
                 String messageType = root.getChild("MsgType").getText();
 
-                logger.info("message body: \r");
+                logger.info("message body: \r\n");
                 logger.info("toUserName: " + toUserName);
                 logger.info("fromUserName: " + fromUserName);
                 logger.info("createTime: " + createTime);
@@ -117,7 +128,12 @@ public class WeixinController extends BaseController{
                         if (message != null) {
                             Object result = messageHandler.handle(message);
                             if (request != null) {
-                                return result;
+                                if (encryptType!= null) {
+                                    return crypter.encryptMsg(outputter.outputString((Document)result), timestamp, RandomUtil.getRandomStr());
+                                }
+                                else {
+                                    return outputter.outputString((Document)result);
+                                }
                             }
                         }
                     }
@@ -156,6 +172,7 @@ public class WeixinController extends BaseController{
         String callback = "http://study-pay.nat123.net/weixin/callback/code";
         String callbackToUse = URLEncoder.encode(callback, "UTF-8");
         String redirectUrl = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=" + weixinPayConfigure.getAppID() + "&redirect_uri=" + callbackToUse + "&response_type=code&scope=snsapi_userinfo&state=STATE#wechat_redirect";
+        logger.info("redirect for code, url: \r\n" + redirectUrl);
         response.sendRedirect(redirectUrl);
     }
 
