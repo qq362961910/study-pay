@@ -1,6 +1,6 @@
 /**
  * 对公众平台发送给公众账号的消息加解密示例代码.
- * 
+ *
  * @copyright Copyright (c) 1998-2014 Tencent Inc.
  */
 
@@ -20,7 +20,7 @@ class PKCS7Encoder {
 
 	/**
 	 * 获得对明文进行补位填充的字节.
-	 * 
+	 *
 	 * @param count 需要进行填充补位操作的明文字节个数
 	 * @return 补齐用的字节数组
 	 */
@@ -41,7 +41,7 @@ class PKCS7Encoder {
 
 	/**
 	 * 删除解密后明文的补位字符
-	 * 
+	 *
 	 * @param decrypted 解密后的明文
 	 * @return 删除补位字符后的明文
 	 */
@@ -55,7 +55,7 @@ class PKCS7Encoder {
 
 	/**
 	 * 将数字转化成ASCII码对应的字符，用于对明文进行补码
-	 * 
+	 *
 	 * @param a 需要转化的数字
 	 * @return 转化得到的字符
 	 */

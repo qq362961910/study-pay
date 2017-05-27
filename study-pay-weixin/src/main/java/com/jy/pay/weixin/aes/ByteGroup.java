@@ -3,7 +3,7 @@ package com.jy.pay.weixin.aes;
 import java.util.ArrayList;
 
 class ByteGroup {
-	ArrayList<Byte> byteContainer = new ArrayList<Byte>();
+	ArrayList<Byte> byteContainer = new ArrayList<>();
 
 	public byte[] toBytes() {
 		byte[] bytes = new byte[byteContainer.size()];
