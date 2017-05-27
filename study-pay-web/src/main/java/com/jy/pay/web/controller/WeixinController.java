@@ -85,48 +85,49 @@ public class WeixinController extends BaseController{
                 }
                 sb.append(new String(buf, 0, len));
             }
+            if (sb.length() > 0) {
+                String originalRequestBody = sb.toString();
+                logger.debug("original request body: \r" + originalRequestBody);
 
-            String originalRequestBody = sb.toString();
-            logger.debug("original request body: \r" + originalRequestBody);
+                WXBizMsgCrypt crypter = new WXBizMsgCrypt(weixinPayConfigure.getToken(), weixinPayConfigure.getAesKey(), weixinPayConfigure.getAppID());
+                String requestMessage = crypter.decryptMsg(messageSignature, timestamp, nonce, originalRequestBody);
+                logger.info("message: \r" + requestMessage);
 
-            WXBizMsgCrypt crypter = new WXBizMsgCrypt(weixinPayConfigure.getToken(), weixinPayConfigure.getAesKey(), weixinPayConfigure.getAppID());
-            String requestMessage = crypter.decryptMsg(messageSignature, timestamp, nonce, originalRequestBody);
-            logger.info("message: \r" + requestMessage);
+                SAXBuilder saxBuilder = new SAXBuilder();
+                Document requestMessageXml = saxBuilder.build(new StringReader(requestMessage));
+                Element root = requestMessageXml.getRootElement();
+                String toUserName = root.getChild("ToUserName").getText();
+                String fromUserName = root.getChild("FromUserName").getText();
+                String createTime = root.getChild("CreateTime").getText();
+                String messageType = root.getChild("MsgType").getText();
 
-            SAXBuilder saxBuilder = new SAXBuilder();
-            Document requestMessageXml = saxBuilder.build(new StringReader(requestMessage));
-            Element root = requestMessageXml.getRootElement();
-            String toUserName = root.getChild("ToUserName").getText();
-            String fromUserName = root.getChild("FromUserName").getText();
-            String createTime = root.getChild("CreateTime").getText();
-            String messageType = root.getChild("MsgType").getText();
+                logger.info("message body: \r");
+                logger.info("toUserName: " + toUserName);
+                logger.info("fromUserName: " + fromUserName);
+                logger.info("createTime: " + createTime);
+                logger.info("messageType: " + messageType);
 
-            logger.info("message body: \r");
-            logger.info("toUserName: " + toUserName);
-            logger.info("fromUserName: " + fromUserName);
-            logger.info("createTime: " + createTime);
-            logger.info("messageType: " + messageType);
-
-            MessageType type = MessageType.getMessageType(messageType);
-            logger.info("receive a message: " + type);
-            MessageHandler messageHandler = messageHandlerManager.getMessageHandler(type);
-            if (messageHandler != null) {
-                MessageProducer producer = messageProducerManager.getMessageProducer(type);
-                if (producer != null) {
-                    BaseWeixinMessage message = producer.produce(root);
-                    if (message != null) {
-                        Object result = messageHandler.handle(message);
-                        if (request != null) {
-                            return result;
+                MessageType type = MessageType.getMessageType(messageType);
+                logger.info("receive a message: " + type);
+                MessageHandler messageHandler = messageHandlerManager.getMessageHandler(type);
+                if (messageHandler != null) {
+                    MessageProducer producer = messageProducerManager.getMessageProducer(type);
+                    if (producer != null) {
+                        BaseWeixinMessage message = producer.produce(root);
+                        if (message != null) {
+                            Object result = messageHandler.handle(message);
+                            if (request != null) {
+                                return result;
+                            }
                         }
+                    }
+                    else {
+                        logger.warn("no message producer found for message type: " + messageType);
                     }
                 }
                 else {
-                    logger.warn("no message producer found for message type: " + messageType);
+                    logger.warn("no message handler found for message type: " + messageType);
                 }
-            }
-            else {
-                logger.warn("no message handler found for message type: " + messageType);
             }
         }
         if (signature.equals(sign)) {
